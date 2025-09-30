@@ -18,7 +18,7 @@ import { redrawPaylineOverlay } from './ui/paylines.js';
 import { makeHighlighter } from './ui/highlight.js';
 import { computeLayout, applyLayoutToSprites } from './ui/layoutManager.js';
 import { createReelsGrid, updateReelsGrid } from './ui/reelsGrid.js';
-import { createTitle, layoutTitle } from "./ui/title.js";
+import { createTitle, layoutTitle } from './ui/title.js';
 
 const PROFILE_LANDSCAPE = {
   W: 1280,
@@ -88,14 +88,44 @@ export function createGameScene(app) {
   let currentPanel = panelThemeForState(panelState);
   const highlighter = makeHighlighter(app, spritesGrid, highlightLayer);
 
+  let spinBtn = null;
+
+  function normalizeSpinBtn() {
+    if (!spinBtn) return;
+    const tex = spinBtn.texture;
+    if (!tex) return;
+    if (!tex.valid) {
+      tex.once('update', normalizeSpinBtn);
+      return;
+    }
+    const target = profile.BTN_SIZE;
+    const base = Math.max(tex.width || 1, tex.height || 1);
+    const s = target / base;
+    spinBtn.scale.set(s);
+    spinBtn.position.set(designW / 2, layout.BTN_Y + target / 2);
+  }
+
+  function ensureSpinButton() {
+    const centerX = designW / 2;
+    const size = profile.BTN_SIZE;
+    const y = layout.BTN_Y;
+
+    if (!spinBtn) {
+      spinBtn = createSpinButton(uiLayer, textureFor, size, centerX, y, spin);
+    } else {
+      spinBtn.setSize(size);
+      spinBtn.position.set(centerX, y + size / 2);
+    }
+  }
+
   function applyLayout(vw, vh) {
     profile = pickProfile(vw, vh);
-    title.position.set(designW / 2, Math.max(8, profile.TOP_MARGIN - 56));
-
     designW = profile.W;
     designH = profile.H;
-    layoutTitle(title, designW, profile, -14);
+
     layout = computeLayout(profile, REELS_COLS, REELS_ROWS, designW, designH);
+    layoutTitle(title, designW, profile, -14);
+
     drawReelsPanel(
       reelsPanel,
       layout.reelsX - layout.panelPad,
@@ -107,26 +137,15 @@ export function createGameScene(app) {
     wins.setBox(layout.winsBox);
     wins.drawPanel(currentPanel.panel, currentPanel.panelA);
     applyLayoutToSprites(spritesGrid, layout, profile.GAP);
+
     redrawPaylineOverlay(paylinesLayer, [], {
       cellSize: layout.CELL,
       gap: profile.GAP,
       reelsX: layout.reelsX,
       reelsY: layout.reelsY,
     });
-  }
 
-  let spinBtn = null;
-  function ensureSpinButton() {
-    const centerX = designW / 2;
-    const size = profile.BTN_SIZE;
-    const y = layout.BTN_Y;
-    if (!spinBtn) {
-      spinBtn = createSpinButton(uiLayer, textureFor, size, centerX, y, spin);
-    } else {
-      spinBtn.width = size;
-      spinBtn.height = size;
-      spinBtn.position.set(centerX, y + size / 2);
-    }
+    ensureSpinButton();
   }
 
   function winningLinesFrom(grid) {
@@ -159,6 +178,7 @@ export function createGameScene(app) {
     ];
     wins.setText(lines.join('\n'));
     wins.fitHeight(app);
+
     if (!showEffects) {
       panelState = 'ready';
     } else if (result.total <= 0) {
@@ -170,6 +190,7 @@ export function createGameScene(app) {
     }
     currentPanel = panelThemeForState(panelState);
     wins.drawPanel(currentPanel.panel, currentPanel.panelA);
+
     if (!showEffects) {
       redrawPaylineOverlay(paylinesLayer, [], {
         cellSize: layout.CELL,
@@ -221,6 +242,7 @@ export function createGameScene(app) {
     if (spinning) return;
     spinning = true;
     if (spinBtn) spinBtn.alpha = 0.85;
+
     highlighter.clear();
     positions = positions.map((_, c) => Math.floor(rng() * BANDS[c].length));
     const grid = gridFromPositions(positions);
@@ -228,7 +250,11 @@ export function createGameScene(app) {
       PIXI.Assets.get(id),
     );
     setWinningsText(positions, grid, evaluateWins(grid), { showEffects: true });
-    if (spinBtn) spinBtn.alpha = 1;
+
+    if (spinBtn) {
+      spinBtn.alpha = 1;
+      normalizeSpinBtn();
+    }
     spinning = false;
     hasSpun = true;
   };
@@ -242,11 +268,13 @@ export function createGameScene(app) {
     const { width: vw, height: vh } = app.renderer.screen;
     drawBackground(bg, vw, vh);
     applyLayout(vw, vh);
-    ensureSpinButton();
+
     const stageScale = Math.min(vw / designW, vh / designH);
     gameRoot.scale.set(stageScale);
     gameRoot.position.set((vw - designW * stageScale) / 2, (vh - designH * stageScale) / 2);
+
     wins.fitHeight(app);
+
     if (!hasSpun) {
       redrawPaylineOverlay(paylinesLayer, [], {
         cellSize: layout.CELL,
@@ -256,6 +284,8 @@ export function createGameScene(app) {
       });
       highlighter.clear();
     }
+
+    normalizeSpinBtn();
   }
 
   resize();
