@@ -18,7 +18,7 @@ import { redrawPaylineOverlay } from './ui/paylines.js';
 import { makeHighlighter } from './ui/highlight.js';
 import { computeLayout, applyLayoutToSprites } from './ui/layoutManager.js';
 import { createReelsGrid, updateReelsGrid } from './ui/reelsGrid.js';
-import { createTitle } from './ui/title.js';
+import { createTitle, layoutTitle } from "./ui/title.js";
 
 const PROFILE_LANDSCAPE = {
   W: 1280,
@@ -94,6 +94,7 @@ export function createGameScene(app) {
 
     designW = profile.W;
     designH = profile.H;
+    layoutTitle(title, designW, profile, -14);
     layout = computeLayout(profile, REELS_COLS, REELS_ROWS, designW, designH);
     drawReelsPanel(
       reelsPanel,
