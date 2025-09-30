@@ -1,5 +1,3 @@
------
-
 # PearFiction Slot Machine (PixiJS + Vite)
 
 A small, production-style implementation of the take-home assignment using ES2015 JavaScript, PixiJS for rendering, Vite for dev/build, and Vitest for unit tests.
