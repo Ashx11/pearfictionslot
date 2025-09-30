@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "preview": "vite preview",
     "test": "vitest run --reporter=default",
     "test:watch": "vitest",
@@ -20,6 +22,7 @@
     "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
+    "gh-pages": "^6.3.0",
     "globals": "^16.4.0",
     "prettier": "^3.6.2",
     "vite": "npm:rolldown-vite@^7.1.12",
