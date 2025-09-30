@@ -1,5 +1,7 @@
 # PearFiction Slot Machine (PixiJS + Vite)
 
+**Live demo:** https://ashx11.github.io/pearfictionslot/
+
 A small, production-style implementation of the take-home assignment using ES2015 JavaScript, PixiJS for rendering, Vite for dev/build, and Vitest for unit tests.
 
 It loads assets with a preloader, shows a 5×3 reel grid, a spin button, and a wins text area. The layout resizes responsively and remains centered.
